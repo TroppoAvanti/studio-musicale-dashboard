@@ -1,0 +1,380 @@
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
+import { TrendingUp, DollarSign, Users, Calendar, AlertCircle, Target, Music, Headphones } from 'lucide-react';
+
+const Dashboard = () => {
+  const [selectedYear, setSelectedYear] = useState(2025);
+  const [currentMonth, setCurrentMonth] = useState(5); // Maggio
+  
+  // Dati dalle specifiche del documento
+  const speseIniziali = [
+    { categoria: 'Insonorizzazione + vetrata', importo: 9000 },
+    { categoria: 'Arredi e ristrutturazione', importo: 3000 },
+    { categoria: 'PC professionali', importo: 3000 },
+    { categoria: 'Monitor audio + interfacce', importo: 3000 },
+    { categoria: 'Microfoni e accessori', importo: 2000 },
+    { categoria: 'Software originali', importo: 2500 },
+    { categoria: 'Trattamento acustico', importo: 1500 },
+    { categoria: 'Marketing iniziale', importo: 1000 },
+    { categoria: 'Registrazione azienda', importo: 1000 },
+    { categoria: 'Altro equipaggiamento', importo: 1000 }
+  ];
+
+  const ricaviMensili = [
+    { servizio: 'Registrazioni vocali', clienti: 12, ricavo: 480, prezzo: 40 },
+    { servizio: 'Mix + Mastering', clienti: 8, ricavo: 560, prezzo: 70 },
+    { servizio: 'Produzioni musicali', clienti: 4, ricavo: 600, prezzo: 150 },
+    { servizio: 'Podcast/Doppiaggi', clienti: 3, ricavo: 300, prezzo: 100 },
+    { servizio: 'Formazione/Lezioni', clienti: 4, ricavo: 200, prezzo: 50 },
+    { servizio: 'Noleggio studio', clienti: 0, ricavo: 200, prezzo: 0 }
+  ];
+
+  const speseMensili = [
+    { categoria: 'Affitto locale', importo: 350 },
+    { categoria: 'Corrente + Internet', importo: 100 },
+    { categoria: 'Servizi digitali', importo: 30 },
+    { categoria: 'Marketing', importo: 100 },
+    { categoria: 'Consumi vari', importo: 50 }
+  ];
+
+  // Simulazione dati mensili per il grafico trend
+  const generaMesiDati = () => {
+    const mesi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+    return mesi.map((mese, index) => ({
+      mese,
+      ricavi: index <= currentMonth - 1 ? 2340 + Math.random() * 400 - 200 : 2340,
+      spese: 630,
+      utile: index <= currentMonth - 1 ? 1710 + Math.random() * 400 - 200 : 1710,
+      clientiTotali: ricaviMensili.reduce((acc, item) => acc + item.clienti, 0) + Math.floor(Math.random() * 10)
+    }));
+  };
+
+  const [datiMensili] = useState(generaMesiDati());
+
+  const totaleRicaviMensili = ricaviMensili.reduce((acc, item) => acc + item.ricavo, 0);
+  const totaleSpeseMensili = speseMensili.reduce((acc, item) => acc + item.importo, 0);
+  const utileMensile = totaleRicaviMensili - totaleSpeseMensili;
+  const utileAnnuale = utileMensile * 12;
+
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe', '#00c49f'];
+
+  // Calcolo prestito Resto al Sud
+  const prestitoTotale = 50000;
+  const durataAnni = 8;
+  const rataMensile = prestitoTotale / (durataAnni * 12);
+  const percentualeUtilePerRata = (rataMensile / utileMensile) * 100;
+  
+  // Calcolo ROI e Break-Even
+  const investimentoIniziale = 27000;
+  const breakEvenMesi = Math.ceil(investimentoIniziale / utileMensile);
+  const breakEvenAnni = Math.floor(breakEvenMesi / 12);
+  const breakEvenMesiRimanenti = breakEvenMesi % 12;
+  
+  // ROI annuale e cumulative
+  const roiAnnuale = ((utileAnnuale / investimentoIniziale) * 100);
+  const roiMensile = roiAnnuale / 12;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                <Music className="h-8 w-8 text-purple-400" />
+                Studio Musicale Dashboard
+              </h1>
+              <p className="text-purple-200 mt-2">Nicholas Maida Pastore & Antonio Santarcangelo - Progetto Resto al Sud</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-purple-200">Aggiornamento</p>
+              <p className="text-white font-semibold">27 Maggio 2025</p>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 backdrop-blur-md rounded-xl p-6 border border-green-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-200 text-sm">Utile Mensile</p>
+                <p className="text-2xl font-bold text-white">€{utileMensile.toLocaleString()}</p>
+                <p className="text-green-300 text-xs">€{utileAnnuale.toLocaleString()}/anno</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-400" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 backdrop-blur-md rounded-xl p-6 border border-blue-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-200 text-sm">Ricavi Mensili</p>
+                <p className="text-2xl font-bold text-white">€{totaleRicaviMensili.toLocaleString()}</p>
+                <p className="text-blue-300 text-xs">€{(totaleRicaviMensili * 12).toLocaleString()}/anno</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-blue-400" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 backdrop-blur-md rounded-xl p-6 border border-yellow-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-200 text-sm">Break-Even</p>
+                <p className="text-2xl font-bold text-white">{breakEvenAnni > 0 ? `${breakEvenAnni}a ` : ''}{breakEvenMesiRimanenti}m</p>
+                <p className="text-yellow-300 text-xs">Rientro investimento</p>
+              </div>
+              <Calendar className="h-8 w-8 text-yellow-400" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 backdrop-blur-md rounded-xl p-6 border border-purple-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-200 text-sm">ROI Annuale</p>
+                <p className="text-2xl font-bold text-white">{roiAnnuale.toFixed(0)}%</p>
+                <p className="text-purple-300 text-xs">{roiMensile.toFixed(1)}%/mese</p>
+              </div>
+              <Target className="h-8 w-8 text-purple-400" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 backdrop-blur-md rounded-xl p-6 border border-orange-400/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-200 text-sm">Rata Prestito</p>
+                <p className="text-2xl font-bold text-white">€{Math.round(rataMensile)}</p>
+                <p className="text-orange-300 text-xs">{percentualeUtilePerRata.toFixed(1)}% dell'utile</p>
+              </div>
+              <AlertCircle className="h-8 w-8 text-orange-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Trend Mensile */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-400" />
+              Trend Mensile 2025
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={datiMensili}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="mese" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                    border: '1px solid rgba(156, 163, 175, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Area type="monotone" dataKey="ricavi" stackId="1" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                <Area type="monotone" dataKey="spese" stackId="2" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+                <Line type="monotone" dataKey="utile" stroke="#ffc658" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Distribuzione Ricavi */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Headphones className="h-5 w-5 text-purple-400" />
+              Ricavi per Servizio
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={ricaviMensili}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ servizio, ricavo }) => `€${ricavo}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="ricavo"
+                >
+                  {ricaviMensili.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                    border: '1px solid rgba(156, 163, 175, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Tabelle Dettagliate */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Servizi e Clienti */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4">Analisi Servizi</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left py-2 text-purple-200">Servizio</th>
+                    <th className="text-center py-2 text-purple-200">Clienti</th>
+                    <th className="text-center py-2 text-purple-200">Prezzo</th>
+                    <th className="text-right py-2 text-purple-200">Ricavo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ricaviMensili.map((item, index) => (
+                    <tr key={index} className="border-b border-white/10">
+                      <td className="py-2 text-white">{item.servizio}</td>
+                      <td className="text-center py-2 text-white">{item.clienti}</td>
+                      <td className="text-center py-2 text-white">€{item.prezzo || 'Vario'}</td>
+                      <td className="text-right py-2 text-green-400 font-semibold">€{item.ricavo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Spese Fisse */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4">Spese Fisse Mensili</h3>
+            <div className="space-y-3">
+              {speseMensili.map((spesa, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-white/10">
+                  <span className="text-white">{spesa.categoria}</span>
+                  <span className="text-red-400 font-semibold">€{spesa.importo}</span>
+                </div>
+              ))}
+              <div className="flex justify-between items-center py-2 pt-4 border-t border-white/20">
+                <span className="text-white font-semibold">Totale Mensile</span>
+                <span className="text-red-400 font-bold text-lg">€{totaleSpeseMensili}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ROI e Break-Even Analysis */}
+        <div className="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 backdrop-blur-md rounded-xl p-6 border border-emerald-400/30 mb-6">
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-emerald-400" />
+            Analisi ROI e Rientro Investimento
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center bg-white/5 rounded-lg p-4 border border-emerald-400/20">
+              <p className="text-emerald-200 text-sm">Investimento Iniziale</p>
+              <p className="text-2xl font-bold text-white">€{investimentoIniziale.toLocaleString()}</p>
+              <p className="text-emerald-300 text-xs">Coperto da Resto al Sud</p>
+            </div>
+            <div className="text-center bg-white/5 rounded-lg p-4 border border-emerald-400/20">
+              <p className="text-emerald-200 text-sm">Break-Even Point</p>
+              <p className="text-2xl font-bold text-white">
+                {breakEvenAnni > 0 ? `${breakEvenAnni} anni` : ''} {breakEvenMesiRimanenti} mesi
+              </p>
+              <p className="text-emerald-300 text-xs">Rientro completo</p>
+            </div>
+            <div className="text-center bg-white/5 rounded-lg p-4 border border-emerald-400/20">
+              <p className="text-emerald-200 text-sm">ROI Anno 1</p>
+              <p className="text-2xl font-bold text-emerald-400">{roiAnnuale.toFixed(0)}%</p>
+              <p className="text-emerald-300 text-xs">Ritorno investimento</p>
+            </div>
+            <div className="text-center bg-white/5 rounded-lg p-4 border border-emerald-400/20">
+              <p className="text-emerald-200 text-sm">Guadagno Netto Anno 1</p>
+              <p className="text-2xl font-bold text-white">€{(utileAnnuale - (rataMensile * 12)).toLocaleString()}</p>
+              <p className="text-emerald-300 text-xs">Dopo rate prestito</p>
+            </div>
+          </div>
+          
+          {/* Proiezione quinquennale */}
+          <div className="mt-6 pt-4 border-t border-emerald-400/20">
+            <h4 className="text-lg font-semibold text-white mb-3">Proiezione Guadagni Quinquennali</h4>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              {[1, 2, 3, 4, 5].map(anno => {
+                const utileBrutoAnno = utileAnnuale * anno;
+                const rateAnno = rataMensile * 12 * (anno <= 2 ? 0 : anno - 2); // Rate iniziano dopo 24 mesi
+                const guadagnoNettoAnno = utileBrutoAnno - rateAnno;
+                const guadagnoPerPersona = guadagnoNettoAnno / 2;
+                
+                return (
+                  <div key={anno} className="text-center bg-white/5 rounded-lg p-3 border border-emerald-400/10">
+                    <p className="text-emerald-200 text-xs">Anno {anno}</p>
+                    <p className="text-lg font-bold text-white">€{guadagnoNettoAnno.toLocaleString()}</p>
+                    <p className="text-emerald-300 text-xs">€{guadagnoPerPersona.toLocaleString()} a testa</p>
+                    {anno <= 2 && <p className="text-yellow-300 text-xs">Senza rate</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-indigo-500/20 to-purple-600/20 backdrop-blur-md rounded-xl p-6 border border-indigo-400/30">
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-indigo-400" />
+            Prestito Resto al Sud - Piano di Rimborso
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-indigo-200 text-sm">Prestito Totale</p>
+              <p className="text-2xl font-bold text-white">€50.000</p>
+              <p className="text-indigo-300 text-xs">€25.000 a testa</p>
+            </div>
+            <div className="text-center">
+              <p className="text-indigo-200 text-sm">Durata</p>
+              <p className="text-2xl font-bold text-white">8 anni</p>
+              <p className="text-indigo-300 text-xs">Prime rate dopo 24 mesi</p>
+            </div>
+            <div className="text-center">
+              <p className="text-indigo-200 text-sm">Rata Mensile</p>
+              <p className="text-2xl font-bold text-white">€{Math.round(rataMensile)}</p>
+              <p className="text-indigo-300 text-xs">Stimata</p>
+            </div>
+            <div className="text-center">
+              <p className="text-indigo-200 text-sm">Sostenibilità</p>
+              <p className="text-2xl font-bold text-green-400">{percentualeUtilePerRata.toFixed(1)}%</p>
+              <p className="text-green-300 text-xs">dell'utile mensile</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer con Investimento Iniziale */}
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-semibold text-white mb-4">Investimento Iniziale (Coperto da Resto al Sud)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {speseIniziali.slice(0, 5).map((spesa, index) => (
+              <div key={index} className="text-center">
+                <p className="text-purple-200 text-xs">{spesa.categoria}</p>
+                <p className="text-white font-semibold">€{spesa.importo.toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+            {speseIniziali.slice(5).map((spesa, index) => (
+              <div key={index} className="text-center">
+                <p className="text-purple-200 text-xs">{spesa.categoria}</p>
+                <p className="text-white font-semibold">€{spesa.importo.toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 pt-4 border-t border-white/20 text-center">
+            <p className="text-purple-200">Investimento Totale</p>
+            <p className="text-3xl font-bold text-white">€27.000</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
